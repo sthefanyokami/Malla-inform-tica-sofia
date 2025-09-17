@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malla Curricular - Ingeniería Indormática</title>
+    <style>
+        /* Tonos morados:
+           Fondo: #e6e6fa (Lavanda)
+           Texto general: #4b0082 (Índigo)
+           Títulos: #8a2be2 (Azul violeta)
+           Contenedores: #f5f5f5 (Blanco grisáceo para contraste)
+           Cursos: #ece6f7 (Morado claro)
+           Cursos completados: #d6b4f2 (Morado medio)
+           Barra de progreso: #a020f0 (Púrpura)
+           Bordes y detalles: #c080ff (Morado pastel)
+           Tooltip: #6a0dad (Morado oscuro)
+        */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e6e6fa; /* Fondo morado suave */
+            color: #4b0082; /* Texto general en índigo */
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #8a2be2; /* Título principal en azul violeta */
+            font-size: 2.5em;
+            margin: 0;
+        }
+
+        .header p {
+            color: #7b68ee; /* Subtítulo en morado medio */
+            font-style: italic;
+        }
+
+        .semester-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .semester {
+            background-color: #ffffff; /* Contenedor de semestre en blanco para contraste */
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .semester:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .semester h2 {
+            color: #6a0dad; /* Título de semestre en morado oscuro */
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px solid #e0b0ff; /* Borde inferior en morado claro */
+            padding-bottom: 10px;
+        }
+
+        .course {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #ece6f7; /* Fondo de cada curso en morado muy claro */
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            position: relative;
+        }
+
+        .course:hover {
+            background-color: #d6b4f2; /* Morado medio al pasar el cursor */
+        }
+
+        .course.completed {
+            background-color: #d8bfd8; /* Morado claro para cursos completados */
+        }
+
+        .course.completed .course-name {
+            text-decoration: line-through;
+            color: #6a0dad; /* Morado oscuro para texto de cursos completados */
+        }
+        
+        .course.locked {
+            cursor: not-allowed;
+            background-color: #f1eef7; /* Morado muy claro para cursos bloqueados */
+            color: #a9a9a9;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+        }
+
+        .course-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .course-name {
+            font-weight: bold;
+            font-size: 1em;
+            color: #4b0082; /* Nombre del curso en índigo */
+        }
+
+        .course-uc {
+            font-size: 0.85em;
+            color: #8a2be2; /* Unidades de crédito en azul violeta */
+            margin-top: 4px;
+        }
+
+        .uc-count {
+            font-weight: bold;
+            color: #a020f0; /* Púrpura para el contador */
+        }
+
+        .tooltip {
+            visibility: hidden;
+            background-color: #6a0dad; /* Fondo del tooltip en morado oscuro */
+            color: #fff;
+            text-align: center;
+            padding: 8px;
+            border-radius: 6px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Posiciona el tooltip arriba del elemento */
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            width: max-content;
+            max-width: 250px;
+        }
+
+        .course.locked:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #6a0dad transparent transparent transparent; /* Borde del tooltip en morado oscuro */
+        }
+
+        .progress-bar {
+            width: 100%;
+            background-color: #c080ff; /* Fondo de la barra de progreso en morado pastel */
+            border-radius: 5px;
+            height: 20px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: #a020f0; /* Color de progreso en púrpura */
+            width: 0%;
+            transition: width 0.5s ease-in-out;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            font-weight: bold;
+        }
+        .uc-tracker {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #8a2be2; /* Contador de UC en azul violeta */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Malla Curricular Interactiva</h1>
+        <p>Ingeniería Informática</p>
+    </div>
+
+    <div class="uc-tracker">
+        Unidades de Crédito Acumuladas: <span id="uc-counter">0</span> / 265
+    </div>
+
+    <div class="progress-bar">
+        <div id="progress-indicator" class="progress"></div>
+    </div>
+    
+    <div class="semester-grid" id="curriculum-grid"></div>
+
+    <script>
+        const curriculum = [
+            {
+                name: "Semestre 1",
+                totalUC: 25,
+                courses: [
+                    { name: "Álgebra y Trigonometría", uc: 5 },
+                    { name: "Principios de Marketing", uc: 5 },
+                    { name: "Lógica", uc: 4 },
+                    { name: "Fundamentos de Programación", uc: 3 },
+                    { name: "Competencia Textual en español", uc: 5 },
+                    { name: "Identidad, Liderazgo y compromiso I", uc: 3 }
+                ]
+            },
+            {
+                name: "Semestre 2",
+                totalUC: 31,
+                courses: [
+                    { name: "Cálculo Diferencial", uc: 6, req: ["Álgebra y Trigonometría"] },
+                    { name: "Álgebra Lineal", uc: 6, req: ["Álgebra y Trigonometría"] },
+                    { name: "Matemáticas Discretas", uc: 6, req: ["Lógica"] },
+                    { name: "Algoritmos y Programación", uc: 3, req: ["Fundamentos de Programación"] },
+                    { name: "Algoritmos y estructuras de datos", uc: 7, req: ["Algoritmos y Programación"] },
+                    { name: "Identidad, Liderazgo y compromiso II", uc: 3, req: ["Identidad, Liderazgo y compromiso I"] }
+                ]
+            },
+            {
+                name: "Semestre 3",
+                totalUC: 33,
+                courses: [
+                    { name: "Cálculo Integral", uc: 5, req: ["Cálculo Diferencial"] },
+                    { name: "Física General", uc: 6, req: ["Cálculo Diferencial"] },
+                    { name: "Contabilidad Financiera", uc: 5, reqUC: 56 },
+                    { name: "Ecología, ambiente y sustentabilidad", uc: 3, reqUC: 44 },
+                    { name: "Programación Orientada a Objetos", uc: 7, req: ["Algoritmos y Programación", "Algoritmos y estructuras de datos"] },
+                    { name: "Sistemas de Información", uc: 4, reqUC: 56 },
+                    { name: "Innovación y Emprendimiento", uc: 3, reqUC: 56 }
+                ]
+            },
+            {
+                name: "Semestre 4",
+                totalUC: 31,
+                courses: [
+                    { name: "Cálculo Vectorial", uc: 5, req: ["Cálculo Integral"] },
+                    { name: "Ecuaciones Diferenciales Ordinarias", uc: 4, req: ["Cálculo Integral"] },
+                    { name: "Ingeniería Económica", uc: 4, req: ["Contabilidad Financiera"] },
+                    { name: "Organización del Computador", uc: 5, req: ["Matemáticas Discretas"] },
+                    { name: "Programación orientada a la web", uc: 3, req: ["Programación Orientada a Objetos"] },
+                    { name: "Ingeniería de software", uc: 5, req: ["Sistemas de Información"] },
+                    { name: "Interacción humano computador", uc: 5, req: ["Ingeniería de software"] }
+                ]
+            },
+            {
+                name: "Semestre 5",
+                totalUC: 31,
+                courses: [
+                    { name: "Probabilidad y estadística", uc: 5, req: ["Cálculo Integral"] },
+                    { name: "Electricidad y magnetismo", uc: 6, req: ["Física General"] },
+                    { name: "Laboratorio de física", uc: 2, req: ["Electricidad y magnetismo"] },
+                    { name: "Sistemas operativos", uc: 5, req: ["Organización del Computador"] },
+                    { name: "Tópicos Especiales de Programación", uc: 3, req: ["Programación Orientada a Objetos"] },
+                    { name: "Gestión de Proyectos de Software", uc: 4, req: ["Ingeniería Económica"] },
+                    { name: "Sistemas de Bases de Datos", uc: 6, reqUC: 107 },
+                    { name: "Curso de servicio Comunitario", uc: 0, reqUC: 120 }
+                ]
+            },
+            {
+                name: "Semestre 6",
+                totalUC: 31,
+                courses: [
+                    { name: "Métodos Numéricos", uc: 2, req: ["Cálculo Vectorial"] },
+                    { name: "Arquitectura del Computador Aplicada", uc: 7, req: ["Electricidad y magnetismo"] },
+                    { name: "Inglés I", uc: 4, reqUC: 25 },
+                    { name: "Redes de Comunicación de datos", uc: 6, req: ["Sistemas operativos"] },
+                    { name: "Aseguramiento de la calidad del software", uc: 4, req: ["Gestión de Proyectos de Software"] },
+                    { name: "Ingeniería de Requisitos", uc: 4, req: ["Gestión de Proyectos de Software", "Sistemas de Bases de Datos"] },
+                    { name: "Tópicos Especiales para la Gestión de Datos", uc: 4, req: ["Sistemas de Bases de Datos"] },
+                    { name: "Servicio Comunitario", uc: 0, req: ["Curso de Servicio Comunitario"] }
+                ]
+            },
+            {
+                name: "Semestre 7",
+                totalUC: 30,
+                courses: [
+                    { name: "Investigación de Operaciones", uc: 5, req: ["Métodos Numéricos", "Probabilidad y estadística"] },
+                    { name: "Inteligencia Artificial: Aprendizaje Automático", uc: 4, reqUC: 167 },
+                    { name: "Inglés II", uc: 4, req: ["Inglés I"] },
+                    { name: "Ciberseguridad", uc: 5, req: ["Redes de Comunicación de datos"] },
+                    { name: "Inteligencia de Negocios", uc: 3, reqUC: 167 },
+                    { name: "Desarrollo de Software", uc: 5, req: ["Aseguramiento de la calidad del software", "Ingeniería de Requisitos"] },
+                    { name: "Electiva de informática I", uc: 4, req: ["Desarrollo de Software"], reqUC: 180 },
+                    { name: "Pasantía", uc: 4, req: ["Desarrollo de Software"] }
+                ]
+            },
+            {
+                name: "Semestre 8",
+                totalUC: 28,
+                courses: [
+                    { name: "Evaluación de Sistemas Informáticos", uc: 4, req: ["Investigación de Operaciones"] },
+                    { name: "Ética Profesional", uc: 3, reqUC: 180 },
+                    { name: "Inglés Técnico", uc: 4, req: ["Inglés II"] },
+                    { name: "Computación en la nube", uc: 5, req: ["Ciberseguridad"] },
+                    { name: "Arquitecturas Empresariales", uc: 4, reqUC: 197 },
+                    { name: "Electiva Complementaria", uc: 4, req: ["Desarrollo de Software"], reqUC: 180 },
+                    { name: "Electiva Informática II", uc: 4, req: ["Desarrollo de Software"], reqUC: 180 },
+                    { name: "Curso de Trabajo de Grado", uc: 0, req: ["Desarrollo de Software"] },
+                    { name: "Trabajo de Grado", uc: 21, req: ["Curso de Trabajo de Grado"] }
+                ]
+            }
+        ];
+
+        let completedCourses = {};
+        const totalUC = 265; // Corregido: total de UC de la malla
+
+        const curriculumGrid = document.getElementById('curriculum-grid');
+        const ucCounter = document.getElementById('uc-counter');
+        const progressIndicator = document.getElementById('progress-indicator');
+
+        function loadProgress() {
+            try {
+                const storedProgress = localStorage.getItem('curriculumProgress');
+                if (storedProgress) {
+                    completedCourses = JSON.parse(storedProgress);
+                }
+            } catch (e) {
+                console.error("No se pudo cargar el progreso de localStorage", e);
+            }
+        }
+
+        function saveProgress() {
+            try {
+                localStorage.setItem('curriculumProgress', JSON.stringify(completedCourses));
+            } catch (e) {
+                console.error("No se pudo guardar el progreso en localStorage", e);
+            }
+        }
+
+        function calculateUC() {
+            let ucCompleted = 0;
+            for (const courseName in completedCourses) {
+                if (completedCourses[courseName]) {
+                    const course = findCourseByName(courseName);
+                    if (course) {
+                        ucCompleted += course.uc;
+                    }
+                }
+            }
+            return ucCompleted;
+        }
+
+        function findCourseByName(name) {
+            for (const semester of curriculum) {
+                const course = semester.courses.find(c => c.name === name);
+                if (course) {
+                    return course;
+                }
+            }
+            return null;
+        }
+
+        function updateProgress() {
+            const ucCompleted = calculateUC();
+            const progress = (ucCompleted / totalUC) * 100;
+            
+            ucCounter.textContent = ucCompleted;
+            progressIndicator.style.width = `${progress}%`;
+            progressIndicator.textContent = `${Math.round(progress)}%`;
+        }
+        
+        function checkCourseStatus(course) {
+            const isCompleted = completedCourses[course.name];
+            const ucCompleted = calculateUC();
+            
+            let isLocked = false;
+            let reasons = [];
+
+            // Check prerequisites
+            if (course.req) {
+                for (const req of course.req) {
+                    if (!completedCourses[req]) {
+                        isLocked = true;
+                        reasons.push(`- Falta aprobar: ${req}`);
+                    }
+                }
+            }
+
+            // Check corequisites
+            if (course.coReq) {
+                for (const coReq of course.coReq) {
+                    if (!completedCourses[coReq]) {
+                        reasons.push(`- Requisito simultáneo (CoReq): ${coReq}`);
+                    }
+                }
+            }
+
+            // Check UC prerequisites
+            if (course.reqUC) {
+                if (ucCompleted < course.reqUC) {
+                    isLocked = true;
+                    reasons.push(`- Necesitas ${course.reqUC} UC acumuladas. Te faltan ${course.reqUC - ucCompleted} UC.`);
+                }
+            }
+            
+            return { isCompleted, isLocked, reasons };
+        }
+
+        function renderCurriculum() {
+            curriculumGrid.innerHTML = '';
+            curriculum.forEach(semester => {
+                const semesterDiv = document.createElement('div');
+                semesterDiv.className = 'semester';
+
+                const semesterTitle = document.createElement('h2');
+                semesterTitle.textContent = `${semester.name} (Total UC: ${semester.totalUC})`;
+                semesterDiv.appendChild(semesterTitle);
+
+                semester.courses.forEach(course => {
+                    const courseDiv = document.createElement('div');
+                    const status = checkCourseStatus(course);
+                    
+                    courseDiv.className = `course ${status.isCompleted ? 'completed' : ''} ${status.isLocked ? 'locked' : ''}`;
+                    courseDiv.dataset.courseName = course.name;
+
+                    const courseDetails = document.createElement('div');
+                    courseDetails.className = 'course-details';
+                    
+                    const courseName = document.createElement('span');
+                    courseName.className = 'course-name';
+                    courseName.textContent = course.name;
+                    
+                    const courseUC = document.createElement('span');
+                    courseUC.className = 'course-uc';
+                    courseUC.textContent = `UC: ${course.uc}`;
+
+                    courseDetails.appendChild(courseName);
+                    courseDetails.appendChild(courseUC);
+                    courseDiv.appendChild(courseDetails);
+
+                    if (status.isLocked) {
+                        const tooltip = document.createElement('span');
+                        tooltip.className = 'tooltip';
+                        tooltip.textContent = `Bloqueado. Requisitos:\n${status.reasons.join('\n')}`;
+                        courseDiv.appendChild(tooltip);
+                    }
+
+                    semesterDiv.appendChild(courseDiv);
+                });
+                curriculumGrid.appendChild(semesterDiv);
+            });
+            updateProgress();
+            addEventListeners();
+        }
+
+        function addEventListeners() {
+            document.querySelectorAll('.course').forEach(courseDiv => {
+                courseDiv.addEventListener('click', () => {
+                    const courseName = courseDiv.dataset.courseName;
+                    const course = findCourseByName(courseName);
+                    if (!course) return;
+                    
+                    const status = checkCourseStatus(course);
+
+                    if (!status.isLocked) {
+                        completedCourses[courseName] = !completedCourses[courseName];
+                        saveProgress();
+                        renderCurriculum();
+                    } else {
+                        // Opcional: Feedback visual o sonoro para el usuario
+                        console.log(`Materia ${courseName} bloqueada. Requisitos no cumplidos.`);
+                    }
+                });
+            });
+        }
+
+        // Initialize on page load
+        loadProgress();
+        renderCurriculum();
+    </script>
+</body>
+</html>
