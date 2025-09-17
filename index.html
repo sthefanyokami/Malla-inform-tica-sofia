@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Malla Curricular - Ingeniería Indormática</title>
+    <title>Malla Curricular - Ingeniería Informática</title>
     <style>
-        /* Tonos morados:
-           Fondo: #e6e6fa (Lavanda)
-           Texto general: #4b0082 (Índigo)
-           Títulos: #8a2be2 (Azul violeta)
-           Contenedores: #f5f5f5 (Blanco grisáceo para contraste)
-           Cursos: #ece6f7 (Morado claro)
-           Cursos completados: #d6b4f2 (Morado medio)
-           Barra de progreso: #a020f0 (Púrpura)
-           Bordes y detalles: #c080ff (Morado pastel)
-           Tooltip: #6a0dad (Morado oscuro)
+        /* Paleta de colores azules:
+           Fondo: #f0f8ff (Azul cielo muy claro)
+           Texto general: #191970 (Azul medianoche)
+           Títulos: #00008b (Azul oscuro)
+           Contenedores: #ffffff (Blanco puro)
+           Cursos inactivos/bloqueados: #e6f0ff (Azul muy claro)
+           Cursos activos (no completados): #b0c4de (Azul grisáceo claro)
+           Cursos completados: #87cefa (Azul claro)
+           Barra de progreso: #4682b4 (Azul acero)
+           Bordes y detalles: #add8e6 (Azul claro)
+           Tooltip: #2f4f4f (Gris oscuro)
         */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #e6e6fa; /* Fondo morado suave */
-            color: #4b0082; /* Texto general en índigo */
+            background-color: #f0f8ff; /* Azul cielo muy claro */
+            color: #191970; /* Azul medianoche */
             margin: 0;
             padding: 20px;
         }
@@ -30,13 +31,13 @@
         }
 
         .header h1 {
-            color: #8a2be2; /* Título principal en azul violeta */
+            color: #00008b; /* Azul oscuro */
             font-size: 2.5em;
             margin: 0;
         }
 
         .header p {
-            color: #7b68ee; /* Subtítulo en morado medio */
+            color: #4169e1; /* Azul real */
             font-style: italic;
         }
 
@@ -47,24 +48,24 @@
         }
 
         .semester {
-            background-color: #ffffff; /* Contenedor de semestre en blanco para contraste */
+            background-color: #ffffff; /* Blanco puro para el contenedor */
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             padding: 25px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .semester:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         }
 
         .semester h2 {
-            color: #6a0dad; /* Título de semestre en morado oscuro */
+            color: #191970; /* Azul medianoche */
             margin-top: 0;
             margin-bottom: 20px;
             text-align: center;
-            border-bottom: 2px solid #e0b0ff; /* Borde inferior en morado claro */
+            border-bottom: 2px solid #e6f0ff; /* Azul muy claro */
             padding-bottom: 10px;
         }
 
@@ -72,7 +73,6 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background-color: #ece6f7; /* Fondo de cada curso en morado muy claro */
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 12px;
@@ -80,25 +80,34 @@
             transition: background-color 0.2s ease, transform 0.2s ease;
             position: relative;
         }
-
-        .course:hover {
-            background-color: #d6b4f2; /* Morado medio al pasar el cursor */
+        
+        /* Estado por defecto para materias activas (no bloqueadas ni completadas) */
+        .course:not(.locked):not(.completed) {
+            background-color: #b0c4de; /* Azul grisáceo claro */
+            color: #191970; /* Texto azul oscuro */
+        }
+        
+        .course:not(.locked):hover {
+            background-color: #add8e6; /* Azul claro al pasar el cursor */
         }
 
+        /* Materias completadas */
         .course.completed {
-            background-color: #d8bfd8; /* Morado claro para cursos completados */
+            background-color: #87cefa; /* Azul claro para completadas */
+            color: #00008b;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
         }
 
         .course.completed .course-name {
             text-decoration: line-through;
-            color: #6a0dad; /* Morado oscuro para texto de cursos completados */
+            color: #4682b4; /* Texto azul acero para completadas */
         }
-        
+
+        /* Materias bloqueadas */
         .course.locked {
             cursor: not-allowed;
-            background-color: #f1eef7; /* Morado muy claro para cursos bloqueados */
-            color: #a9a9a9;
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+            background-color: #e6f0ff; /* Azul muy claro para bloqueadas */
+            color: #6495ed; /* Azul medio para texto más tenue */
         }
 
         .course-details {
@@ -109,30 +118,30 @@
         .course-name {
             font-weight: bold;
             font-size: 1em;
-            color: #4b0082; /* Nombre del curso en índigo */
+            color: inherit; /* Hereda el color del contenedor */
         }
 
         .course-uc {
             font-size: 0.85em;
-            color: #8a2be2; /* Unidades de crédito en azul violeta */
+            color: inherit; /* Hereda el color del contenedor */
             margin-top: 4px;
         }
 
         .uc-count {
             font-weight: bold;
-            color: #a020f0; /* Púrpura para el contador */
+            color: #00008b; /* Azul oscuro para el contador */
         }
 
         .tooltip {
             visibility: hidden;
-            background-color: #6a0dad; /* Fondo del tooltip en morado oscuro */
+            background-color: #2f4f4f; /* Gris oscuro para el tooltip */
             color: #fff;
             text-align: center;
             padding: 8px;
             border-radius: 6px;
             position: absolute;
             z-index: 1;
-            bottom: 125%; /* Posiciona el tooltip arriba del elemento */
+            bottom: 125%;
             left: 50%;
             transform: translateX(-50%);
             opacity: 0;
@@ -154,12 +163,12 @@
             margin-left: -5px;
             border-width: 5px;
             border-style: solid;
-            border-color: #6a0dad transparent transparent transparent; /* Borde del tooltip en morado oscuro */
+            border-color: #2f4f4f transparent transparent transparent;
         }
 
         .progress-bar {
             width: 100%;
-            background-color: #c080ff; /* Fondo de la barra de progreso en morado pastel */
+            background-color: #add8e6; /* Fondo de barra en azul claro */
             border-radius: 5px;
             height: 20px;
             margin-top: 20px;
@@ -168,20 +177,21 @@
 
         .progress {
             height: 100%;
-            background-color: #a020f0; /* Color de progreso en púrpura */
+            background-color: #4682b4; /* Color de progreso en azul acero */
             width: 0%;
             transition: width 0.5s ease-in-out;
             text-align: center;
             line-height: 20px;
-            color: white;
+            color: #191970; /* Texto azul oscuro en la barra de progreso */
             font-weight: bold;
         }
+        
         .uc-tracker {
             text-align: center;
             margin: 10px 0;
             font-size: 1.1em;
             font-weight: bold;
-            color: #8a2be2; /* Contador de UC en azul violeta */
+            color: #00008b; /* Contador de UC en azul oscuro */
         }
     </style>
 </head>
@@ -314,7 +324,7 @@
         ];
 
         let completedCourses = {};
-        const totalUC = 265; // Corregido: total de UC de la malla
+        const totalUC = 265;
 
         const curriculumGrid = document.getElementById('curriculum-grid');
         const ucCounter = document.getElementById('uc-counter');
